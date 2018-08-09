@@ -24,35 +24,47 @@ function createIndex(table, field, type) {
   })
 };
 
-function connect(callback) {
-  client.connect(() => {
-    // createIndex(dbTables.SESSIONS, 'updatedAt', Aerospike.indexDataType.NUMERIC);
-    callback();
-  });
-};
-
-function writeRecord(table, key, value, callback = () => {}) {
-  const dbKey = new Aerospike.Key(dbParams.namespace, table, key);
-  client.put(dbKey, value, (error) => {
-    if (error) {
-      return callback(error);
-    }
-    return callback(null, 'ok');
+function connect() {
+  return new Promise((resolve, reject) => {
+    client.connect((error) => {
+      if (error) {
+        reject(error);
+      } else {
+        // createIndex(dbTables.SESSIONS, 'updatedAt', Aerospike.indexDataType.NUMERIC);
+        resolve();
+      }
+    });
   })
 };
 
-function getRecord(table, key, callback) {
-  const dbKey = new Aerospike.Key(dbParams.namespace, table, key);
-  client.get(dbKey, (error, record) => {
-    if (error) {
-      switch (error.code) {
-        case Aerospike.status.AEROSPIKE_ERR_RECORD_NOT_FOUND:
-          return callback(null, null);
-        default:
-          return callback(error);
+function writeRecord(table, key, value) {
+  return new Promise((resolve, reject) => {
+    const dbKey = new Aerospike.Key(dbParams.namespace, table, key);
+    client.put(dbKey, value, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
       }
-    }
-    return callback(null, record.bins);
+    });
+  });
+};
+
+function getRecord(table, key) {
+  return new Promise((resolve, reject) => {
+    const dbKey = new Aerospike.Key(dbParams.namespace, table, key);
+    client.get(dbKey, (error, record) => {
+      if (error) {
+        switch (error.code) {
+          case Aerospike.status.AEROSPIKE_ERR_RECORD_NOT_FOUND:
+            return resolve(null);
+          default:
+            return reject(error);
+        }
+      } else {
+        resolve(record.bins);
+      }
+    });
   });
 };
 
@@ -66,15 +78,15 @@ function getListOfRecords(table, selectedFields, filter) {
 
     const stream = query.foreach();
   
-    stream.on('data', function (record) {
+    stream.on('data', (record) => {
       records.push(record.bins);
     });
   
-    stream.on('error', function (error) {
+    stream.on('error', (error) => {
       reject(error);
     });
   
-    stream.on('end', function () {
+    stream.on('end', () => {
       resolve(records);
     });
   });

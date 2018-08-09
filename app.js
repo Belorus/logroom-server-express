@@ -3,20 +3,19 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const databaseApi = require('./database/database-api');
 
+const databaseApi = require('./database/database-api');
 const sessionsRouter = require('./routes/sessions-router');
 const logsRouter = require('./routes/logs-router');
 
 const app = express();
 
-databaseApi.connect(function (error) {
-  if (error) {
-   console.error('Connection to database failed!')
-  } else {
-   console.log('Connection to database succeeded!')
-  }
-})
+databaseApi.connect()
+  .then(() => {
+    console.log('Connection to database succeeded!')
+  }, (error) => {
+    console.error('Connection to database failed! Error: ', error);
+  });
 
 app.use(cors())
 app.use(logger('dev'));
@@ -27,9 +26,9 @@ app.use(bodyParser.json({ type: '*/*' }));
 
 app.use('/', [sessionsRouter, logsRouter]);
 
-app.use(function(error, req, res, next) {
+app.use((error, req, res, next) => {
   if (error) {
-    res.status(500).send({ status: 500, error });
+    res.status(500).send({ error });
   } else {
     next();
   }

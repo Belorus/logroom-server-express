@@ -1,22 +1,20 @@
 const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
-const socketApi = require('../socket/socket-api');
 const { SOCKET_B_PUSH_LOGS } = require('../socket/socket-events');
 
 function getSessionLogs(sessionId) {
   return new Promise((resolve, reject) => {
-    db.getRecord(dbTables.SESSIONS, sessionId, (error, record) => {
-      if (error) {
+    db.getRecord(dbTables.SESSIONS, sessionId)
+      .then((record) => {
+        if (record) {
+          resolve(record.logs);
+        } else {
+          reject('Session not found');
+        }
+      }, (error) => {
         return reject(error);
-      }
-
-      if (record) {
-        resolve(record.logs);
-      } else {
-        reject('Session not found');
-      }
-    });
-  })
+      });
+  });
 }
 
 function pushLogsToSession(req) {
@@ -28,54 +26,41 @@ function pushLogsToSession(req) {
       seq_number: req.body.seq_number,
     };
   
-    db.getRecord(dbTables.SESSIONS, sessionData.id, (error, record) => {
-      if (error) {
-        return reject(error);
-      } 
-    
-      if (record) {
-        if (sessionData.seq_number <= record.seq_number) {
-          return reject('Bad sequence number');
+    db.getRecord(dbTables.SESSIONS, sessionData.id)
+      .then((record) => {
+        if (record) {
+          if (sessionData.seq_number <= record.seq_number) {
+            return reject('Bad sequence number');
+          }
+          sessionData.additional = { ...record.additional, ...newAdditionalInfo }
+          sessionData.logs = [ ...record.logs, ...newLogs ];
+        } else {
+          sessionData.additional = newAdditionalInfo;
+          sessionData.logs = newLogs;
         }
-        sessionData.additional = { ...record.additional, ...newAdditionalInfo }
-        sessionData.logs = [ ...record.logs, ...newLogs ];
-      } else {
-        sessionData.additional = newAdditionalInfo;
-        sessionData.logs = newLogs;
-      }
-  
-      // sessionData.logs = [];
-      // for (i = 0; i<10000; i++) {
-      //   sessionData.logs.push({
-      //     "categories": [],
-      //     "level": "INFO ",
-      //     "message": ">>> LogManager initialized successfully. UTC time: Thu, 03 May 2018 13:03:56 GMT",
-      //     "tag": "XLog.LogManager",
-      //     "thread": 4,
-      //     "timestamp": 1525363436287
-      //   });
-      // }
-  
-      sessionData.updatedAt = Date.now();
-  
-      socketApi.sendEventToRoom(sessionData.id, SOCKET_B_PUSH_LOGS, {
-        logs: newLogs,
-        total: sessionData.logs.length,
-      });
+    
+        sessionData.updatedAt = Date.now();
       
-    
-      db.writeRecord(dbTables.SESSIONS, sessionData.id, sessionData, (error) => {
-        if (error) {
-          console.error(error);
-        }
+        db.writeRecord(dbTables.SESSIONS, sessionData.id, sessionData)
+          .then((record) => {
+            resolve([{
+              roomId: sessionData.id,
+              type: SOCKET_B_PUSH_LOGS,
+              payload: {
+                logs: newLogs,
+                total: sessionData.logs.length,
+              }
+            }]);
+          }, (error) => {
+            reject(error);
+          })
+      }, (error) => {
+        reject(error);
       });
-    
-      resolve('ok');
-    });
   })
 };
 
-module.exports = { 
+module.exports = {
   getSessionLogs,
   pushLogsToSession,
 };
