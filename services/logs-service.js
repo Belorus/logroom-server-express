@@ -5,9 +5,18 @@ const { SOCKET_B_PUSH_LOGS } = require('../socket/socket-events');
 function getSessionLogs(sessionId) {
   return new Promise((resolve, reject) => {
     db.getRecord(dbTables.SESSIONS, sessionId)
-      .then((record) => {
-        if (record) {
-          resolve(record.logs);
+      .then((session) => {
+        if (session) {
+          const keys = [];
+          for (let i = 1; i < session.logsCount + 1; i++) {
+            keys.push(db.generateKeyForBatchRead(dbTables.LOGS, `${session.id}_${i}`));
+          };
+          db.batchReadRecords(keys)
+            .then((logs) => {
+              resolve(logs);
+            }, (error) => {
+              reject(error);
+            })
         } else {
           reject('Session not found');
         }
@@ -17,38 +26,42 @@ function getSessionLogs(sessionId) {
   });
 }
 
-function pushLogsToSession(req) {
+function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
   return new Promise((resolve, reject) => {
-    const newAdditionalInfo = req.body.additional_parameters;
-    const newLogs = req.body.logs;
-    const sessionData = {
-      id: req.body.session_id,
-      seq_number: req.body.seq_number,
-    };
-    db.getRecord(dbTables.SESSIONS, sessionData.id)
-      .then((record) => {
-        if (record) {
-          if (sessionData.seq_number <= record.seq_number) {
+    db.getRecord(dbTables.SESSIONS, newSessionInfo.id)
+      .then((session) => {
+        const updatedSession= session || { id: newSessionInfo.id, logsCount: 0 };
+
+        if (session) {
+          if (newSessionInfo.seqNumber <= session.seqNumber) {
             return reject('Bad sequence number');
           }
-          sessionData.additional = { ...record.additional, ...newAdditionalInfo }
-          sessionData.logs = [ ...record.logs, ...newLogs ];
-        } else {
-          sessionData.additional = newAdditionalInfo;
-          sessionData.logs = newLogs;
-        }
-    
-        sessionData.updatedAt = Date.now();
-        db.writeRecord(dbTables.SESSIONS, sessionData.id, sessionData)
+        } 
+      
+        newSessionInfo.logs.forEach((log, index) => {
+          const logKey = `${updatedSession.id}_${updatedSession.logsCount + index + 1}`;
+          db.writeRecord(dbTables.LOGS, logKey, log)
+            .then(() => { }, (error) => {
+              console.error(error);
+            });
+        });
+
+        updatedSession.seqNumber = newSessionInfo.seqNumber;
+        updatedSession.additional =  { ...updatedSession.additional, ...newSessionInfo.additional };
+        updatedSession.logsCount = updatedSession.logsCount + newSessionInfo.logs.length;
+        updatedSession.updatedAt = Date.now();
+
+        db.writeRecord(dbTables.SESSIONS, updatedSession.id, updatedSession)
           .then(() => {}, (error) => {
             console.error(error);
-          })
+          });
+
         resolve([{
-          roomId: sessionData.id,
+          roomId: newSessionInfo.id,
           type: SOCKET_B_PUSH_LOGS,
           payload: {
-            logs: newLogs,
-            total: sessionData.logs.length,
+            logs: newSessionInfo.logs,
+            total: updatedSession.logsCount,
           }
         }]);
       }, (error) => {
@@ -59,5 +72,5 @@ function pushLogsToSession(req) {
 
 module.exports = {
   getSessionLogs,
-  pushLogsToSession,
+  pushLogsToSessionAndUpdateInfo,
 };

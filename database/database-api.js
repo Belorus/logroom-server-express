@@ -73,8 +73,13 @@ function getListOfRecords(table, selectedFields, filter) {
     const records = [];
     const query = client.query(dbParams.namespace, table);
 
-    query.where(Aerospike.filter[filter.type](filter.field, filter.from, filter.to));
-    query.select(selectedFields);
+    if (filter) {
+      query.where(Aerospike.filter[filter.type](filter.field, filter.from, filter.to));
+    }
+
+    if (selectedFields) {
+      query.select(selectedFields);
+    }
 
     const stream = query.foreach();
   
@@ -92,9 +97,27 @@ function getListOfRecords(table, selectedFields, filter) {
   });
 };
 
+function batchReadRecords(readKeys) {
+  return new Promise((resolve, reject) => {
+    client.batchRead(readKeys, (error, records) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(records.map((r) => r.record.bins));
+      }
+    });
+  });
+};
+
+function generateKeyForBatchRead(table, key) {
+  return { key: new Aerospike.Key(dbParams.namespace, table, key), read_all_bins: true };
+}
+
 module.exports = {
   connect,
   getListOfRecords,
   getRecord,
   writeRecord,
+  batchReadRecords,
+  generateKeyForBatchRead,
 }

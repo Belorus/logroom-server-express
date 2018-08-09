@@ -13,6 +13,8 @@ io.on('connection', (socket) => {
           total: logs.length,
           isOld: true,
         });
+      }, (error) => {
+        console.error(error);
       })
     }
   });

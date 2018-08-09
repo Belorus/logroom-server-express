@@ -1,12 +1,19 @@
 const logsService = require('../services/logs-service');
 const socketApi = require('../socket/socket-api');
 
-function addNewLogsToSession(req, res, next) {
+function addSessionLogsAndUpdateInfo(req, res, next) {
   if (!req.body.session_id) {
     return res.sendStatus(400);
   }
 
-  logsService.pushLogsToSession(req)
+  const sessionInfo = {
+    id: req.body.session_id,
+    seqNumber: req.body.seq_number,
+    logs: req.body.logs,
+    additional: req.body.additional_parameters,
+  };
+
+  logsService.pushLogsToSessionAndUpdateInfo(sessionInfo)
     .then((socketRoomEvents) => {
       socketRoomEvents.forEach((event) => {
         socketApi.sendEventToRoom(event.roomId, event.type, event.payload);
@@ -18,5 +25,5 @@ function addNewLogsToSession(req, res, next) {
 };
 
 module.exports = {
-  addNewLogsToSession,
+  addSessionLogsAndUpdateInfo,
 };
