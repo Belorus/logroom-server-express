@@ -3,10 +3,11 @@
 /**
  * Module dependencies.
  */
-
+const sticky = require('sticky-session');
 const app = require('../app');
 const debug = require('debug')('logroom-backend:server');
 const http = require('http');
+const cluster = require('cluster');
 const io = require('../socket/socket-api').io;
 
 /**
@@ -20,14 +21,20 @@ app.set('port', port);
  * Create HTTP server.
  */
 
+
 const server = http.createServer(app);
 io.attach(server, { pingInterval: 25000, pingTimeout: 60000 });
 
-server.listen(port, () => {
-  console.log(`Server working on port: ${port}`);
-});
 server.on('error', onError);
-server.on('listening', onListening);
+
+if (!sticky.listen(server, port)) {
+  if (cluster.isMaster) {
+    console.log(`Master server started on port ${port}`);
+  } 
+} else {
+  console.log(`- Child server started on port ${port} case worker id=${cluster.worker.id}`);
+}
+
 
 /**
  * Normalize a port into a number, string, or false.

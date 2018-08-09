@@ -25,7 +25,6 @@ function pushLogsToSession(req) {
       id: req.body.session_id,
       seq_number: req.body.seq_number,
     };
-  
     db.getRecord(dbTables.SESSIONS, sessionData.id)
       .then((record) => {
         if (record) {
@@ -40,20 +39,18 @@ function pushLogsToSession(req) {
         }
     
         sessionData.updatedAt = Date.now();
-      
         db.writeRecord(dbTables.SESSIONS, sessionData.id, sessionData)
-          .then((record) => {
-            resolve([{
-              roomId: sessionData.id,
-              type: SOCKET_B_PUSH_LOGS,
-              payload: {
-                logs: newLogs,
-                total: sessionData.logs.length,
-              }
-            }]);
-          }, (error) => {
-            reject(error);
+          .then(() => {}, (error) => {
+            console.error(error);
           })
+        resolve([{
+          roomId: sessionData.id,
+          type: SOCKET_B_PUSH_LOGS,
+          payload: {
+            logs: newLogs,
+            total: sessionData.logs.length,
+          }
+        }]);
       }, (error) => {
         reject(error);
       });
