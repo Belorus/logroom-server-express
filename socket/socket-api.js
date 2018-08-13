@@ -7,11 +7,15 @@ io.on('connection', (socket) => {
   socket.on(events.SOCKET_F_START_LISTEN_SESSION, ({ sessionId, sendOld }) => {
     socket.join(sessionId);
     if (sendOld) {
-      logsService.getSessionLogs(sessionId).then((logs) => {
-        socket.emit(events.SOCKET_B_PUSH_LOGS, { 
-          logs, 
-          total: logs.length,
-          isOld: true,
+      logsService.getSessionLogs(sessionId)
+        .then((logsBatches) => {
+          logsBatches.forEach((logs, i) => {
+            socket.emit(events.SOCKET_B_PUSH_LOGS, { 
+              logs,
+              isOld: true,
+              batchNumber: i + 1,
+              batchesCount: logsBatches.length,
+          });
         });
       }, (error) => {
         console.error(error);

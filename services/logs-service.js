@@ -8,15 +8,10 @@ function getSessionLogs(sessionId) {
       .then((session) => {
         if (session) {
           const keys = [];
-          for (let i = 1; i < session.logsCount + 1; i++) {
+          for (let i = session.logsCount; i >= 1; i--) {
             keys.push(db.generateKeyForBatchRead(dbTables.LOGS, `${session.id}_${i}`));
           };
-          db.batchReadRecords(keys)
-            .then((logs) => {
-              resolve(logs);
-            }, (error) => {
-              reject(error);
-            })
+          db.batchReadRecords(keys).then(resolve, reject);
         } else {
           reject('Session not found');
         }
@@ -39,11 +34,8 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
         } 
       
         newSessionInfo.logs.forEach((log, index) => {
-          const logKey = `${updatedSession.id}_${updatedSession.logsCount + index + 1}`;
-          db.writeRecord(dbTables.LOGS, logKey, log)
-            .then(() => { }, (error) => {
-              console.error(error);
-            });
+          log.seqNumber = updatedSession.logsCount + index + 1;
+          db.writeRecord(dbTables.LOGS, `${updatedSession.id}_${log.seqNumber}`, log);
         });
 
         updatedSession.seqNumber = newSessionInfo.seqNumber;

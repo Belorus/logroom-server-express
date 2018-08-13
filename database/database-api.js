@@ -3,6 +3,7 @@ const { dbConfig, dbParams } = require('./database-config');
 const { dbTables } = require('./database-constants');
 
 const client = Aerospike.client(dbConfig);
+const BATCH_READ_RECORDS_LIMIT = 5000;
 
 function createIndex(table, field, type) {
   const options = {
@@ -97,16 +98,19 @@ function getListOfRecords(table, selectedFields, filter) {
   });
 };
 
-function batchReadRecords(readKeys) {
-  return new Promise((resolve, reject) => {
-    client.batchRead(readKeys, (error, records) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(records.map((r) => r.record.bins));
-      }
-    });
-  });
+async function batchReadRecords(readKeys) {
+  const readedRecords = [];
+  const readOperationsCount = Math.ceil(readKeys.length / BATCH_READ_RECORDS_LIMIT);
+  for (let i = 0; i < readOperationsCount; i++) {
+    const startIndex = i * BATCH_READ_RECORDS_LIMIT;
+    const endIndex = startIndex + BATCH_READ_RECORDS_LIMIT;
+    const operationKeys = readKeys.slice(startIndex, endIndex)
+    await client.batchRead(operationKeys)
+      .then((records) => {
+        readedRecords.push(records.map((r) => r.record.bins));
+      }, (e) => { throw new Error(e) });
+  };
+  return readedRecords;
 };
 
 function generateKeyForBatchRead(table, key) {
