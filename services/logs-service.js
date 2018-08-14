@@ -2,13 +2,14 @@ const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
 const { SOCKET_B_PUSH_LOGS } = require('../socket/socket-events');
 
-function getSessionLogs(sessionId) {
+function getSessionLogs(sessionId, limit) {
   return new Promise((resolve, reject) => {
     db.getRecord(dbTables.SESSIONS, sessionId)
       .then((session) => {
         if (session) {
           const keys = [];
-          for (let i = session.logsCount; i >= 1; i--) {
+          const logsLimit = limit && session.logsCount > limit ? session.logsCount - limit : 0;
+          for (let i = session.logsCount; i >= logsLimit + 1; i--) {
             keys.push(db.generateKeyForBatchRead(dbTables.LOGS, `${session.id}_${i}`));
           };
           db.batchReadRecords(keys).then(resolve, reject);
@@ -44,7 +45,7 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
         updatedSession.updatedAt = Date.now();
 
         db.writeRecord(dbTables.SESSIONS, updatedSession.id, updatedSession)
-          .then(() => {}, (error) => {
+          .catch((error) => {
             console.error(error);
           });
 
@@ -52,7 +53,7 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
           roomId: newSessionInfo.id,
           type: SOCKET_B_PUSH_LOGS,
           payload: {
-            logs: newSessionInfo.logs,
+            logs: newSessionInfo.logs.reverse(),
             total: updatedSession.logsCount,
           }
         }]);

@@ -1,4 +1,3 @@
-const Aerospike = require('aerospike');
 const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
 
@@ -8,7 +7,7 @@ function getSessions(type) {
   return new Promise((resolve, reject) => {
     const filterRangeTo = Date.now();
     const filterRangeFrom = filterRangeTo - ACTIVE_SESSIONS_TIME_IN_MS;
-    const selectedFields = ['id', 'additional', 'logsCount'];
+    const selectedFields = ['id', 'additional', 'logsCount', 'updatedAt'];
     let sessionsFilter = null; 
     if (type === 'active') {
       sessionsFilter = {

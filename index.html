@@ -14,10 +14,11 @@
 <body>
   <script>
     $(function () {
-      var socket = io.connect('http://localhost:4000');
+      var socket = io.connect('http://10.61.41.82:4000');
       socket.emit('SOCKET_F_START_LISTEN_SESSION', {
-        sessionId: 'test_session_3',
-        sendOld: true
+        sessionId: 'test_session_5',
+        sendOld: true,
+        limit: 100,
       });
       socket.on('SOCKET_B_PUSH_LOGS', function(msg){
         console.log(msg);
