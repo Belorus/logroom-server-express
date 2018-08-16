@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const fs = require('fs');
 
 const databaseApi = require('./database/database-api');
 const sessionsRouter = require('./routes/sessions-router');
@@ -20,6 +21,7 @@ databaseApi.connect()
 
 app.use(cors())
 app.use(logger('dev'));
+app.use('/files', express.static(__dirname + '/public/files'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -34,5 +36,9 @@ app.use((error, req, res, next) => {
     next();
   }
 });
+
+if (!fs.existsSync('public/files')){
+  fs.mkdirSync('public/files');
+}
 
 module.exports = app;

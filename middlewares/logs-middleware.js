@@ -19,6 +19,22 @@ function getSessionLogs(req, res, next) {
     });
 };
 
+function getSessionLogsFileLink(req, res, next) {
+  const sessionId = req.query.sessionId;
+
+  if (!sessionId) {
+    return res.sendStatus(400);
+  }
+
+  logsService.getSessionLogsFileLink(sessionId)
+    .then((link) => {
+      res.send(link);
+    })
+    .catch((error) => {
+      next(error);
+    });
+};
+
 function addSessionLogsAndUpdateInfo(req, res, next) {
   if (!req.body.session_id) {
     return res.sendStatus(400);
@@ -47,4 +63,5 @@ function addSessionLogsAndUpdateInfo(req, res, next) {
 module.exports = {
   addSessionLogsAndUpdateInfo,
   getSessionLogs,
+  getSessionLogsFileLink,
 };

@@ -1,6 +1,9 @@
+const fs = require('fs');
 const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
 const { SOCKET_B_PUSH_LOGS } = require('../socket/socket-events');
+
+const HOST_ADDRESS = process.env.HOST_ADDRESS || 'http://10.61.40.184:4000';
 
 function getSessionLogs(sessionId, limit, startFrom) {
   return new Promise((resolve, reject) => {
@@ -22,7 +25,33 @@ function getSessionLogs(sessionId, limit, startFrom) {
         return reject(error);
       });
   });
-}
+};
+
+function getSessionLogsFileLink(sessionId) {
+  return new Promise((resolve, reject) => {
+    getSessionLogs(sessionId)
+      .then((logsBatches) => {
+        const fileName = `${sessionId}_${Date.now()}_logs.txt`;
+        const filePath = `public/files/${fileName}`;
+        let logsString = '';
+        logsBatches.forEach((logsBatch) => {
+          logsBatch.forEach((log) => {
+            logsString += `${log.level} | ${log.timestamp} | ${log.tag} | ${log.thread} | ${log.categories.join(',') ||  '—'} | ${log.message}\n`
+          });
+        });
+        fs.writeFile(filePath, logsString, (err) => {
+          if (err)  {
+            reject(err);
+          } else {
+            resolve(`${HOST_ADDRESS}/files/${fileName}`);
+          }
+        });
+      })
+      .catch((error) => {
+        reject(error);
+      })
+  });
+};
 
 function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
   return new Promise((resolve, reject) => {
@@ -68,5 +97,6 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
 
 module.exports = {
   getSessionLogs,
+  getSessionLogsFileLink,
   pushLogsToSessionAndUpdateInfo,
 };
