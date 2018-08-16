@@ -108,7 +108,10 @@ async function batchReadRecords(readKeys) {
     await client.batchRead(operationKeys)
       .then((records) => {
         readedRecords.push(records.map((r) => r.record.bins));
-      }, (e) => { throw new Error(e) });
+      })
+      .catch((error) => {
+        throw new Error(error); 
+      });
   };
   return readedRecords;
 };

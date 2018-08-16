@@ -1,6 +1,24 @@
 const logsService = require('../services/logs-service');
 const socketApi = require('../socket/socket-api');
 
+function getSessionLogs(req, res, next) {
+  const sessionId = req.query.sessionId;
+  const startFrom = req.query.startFrom;
+  const limit = req.query.limit;
+
+  if (!sessionId) {
+    return res.sendStatus(400);
+  }
+
+  logsService.getSessionLogs(sessionId, limit, startFrom)
+    .then((logs) => {
+      res.send(logs);
+    })
+    .catch((error) => {
+      next(error);
+    });
+};
+
 function addSessionLogsAndUpdateInfo(req, res, next) {
   if (!req.body.session_id) {
     return res.sendStatus(400);
@@ -16,14 +34,17 @@ function addSessionLogsAndUpdateInfo(req, res, next) {
   logsService.pushLogsToSessionAndUpdateInfo(sessionInfo)
     .then((socketRoomEvents) => {
       socketRoomEvents.forEach((event) => {
+        console.log(event.payload.logs[0].seqNumber);
         socketApi.sendEventToRoom(event.roomId, event.type, event.payload);
       });
       res.send('ok');
-    }, (error) => {
-      next(error);
     })
+    .catch((error) => {
+      next(error);
+    });
 };
 
 module.exports = {
   addSessionLogsAndUpdateInfo,
+  getSessionLogs,
 };

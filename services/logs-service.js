@@ -2,21 +2,23 @@ const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
 const { SOCKET_B_PUSH_LOGS } = require('../socket/socket-events');
 
-function getSessionLogs(sessionId, limit) {
+function getSessionLogs(sessionId, limit, startFrom) {
   return new Promise((resolve, reject) => {
     db.getRecord(dbTables.SESSIONS, sessionId)
       .then((session) => {
         if (session) {
           const keys = [];
-          const logsLimit = limit && session.logsCount > limit ? session.logsCount - limit : 0;
-          for (let i = session.logsCount; i >= logsLimit + 1; i--) {
+          const startLog = startFrom && startFrom <= session.logsCount ? startFrom : session.logsCount;
+          const logsLimit = limit && startLog > limit ? startLog - limit : 0;
+          for (let i = startLog; i >= logsLimit + 1; i--) {
             keys.push(db.generateKeyForBatchRead(dbTables.LOGS, `${session.id}_${i}`));
           };
           db.batchReadRecords(keys).then(resolve, reject);
         } else {
           reject('Session not found');
         }
-      }, (error) => {
+      })
+      .catch((error) => {
         return reject(error);
       });
   });
@@ -57,7 +59,8 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
             total: updatedSession.logsCount,
           }
         }]);
-      }, (error) => {
+      })
+      .catch((error) => {
         reject(error);
       });
   })

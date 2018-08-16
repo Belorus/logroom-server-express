@@ -13,7 +13,8 @@ const app = express();
 databaseApi.connect()
   .then(() => {
     console.log('Connection to database succeeded!')
-  }, (error) => {
+  })
+  .catch((error) => {
     console.error('Connection to database failed! Error: ', error);
   });
 
@@ -22,7 +23,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(bodyParser.json( { type: '*/*'} ));
 
 app.use('/', [sessionsRouter, logsRouter]);
 

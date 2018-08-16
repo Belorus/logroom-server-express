@@ -9,15 +9,16 @@ io.on('connection', (socket) => {
     if (sendOld) {
       logsService.getSessionLogs(sessionId, limit)
         .then((logsBatches) => {
-          logsBatches.forEach((logs, i) => {
-            socket.emit(events.SOCKET_B_PUSH_LOGS, { 
-              logs,
-              isOld: true,
+            logsBatches.forEach((logs, i) => {
+              socket.emit(events.SOCKET_B_PUSH_LOGS, { 
+                logs,
+                isOld: true,
+            });
           });
+        })
+        .catch((error) => {
+          console.error(error);
         });
-      }, (error) => {
-        console.error(error);
-      })
     }
   });
 

@@ -20,7 +20,8 @@ function getSessions(type) {
     db.getListOfRecords(dbTables.SESSIONS, selectedFields, sessionsFilter)
       .then((activeSessions) => {
         resolve(activeSessions);
-      }, (error) => {
+      })
+      .catch((error) => {
         reject(error);
       });
   });

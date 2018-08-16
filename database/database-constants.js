@@ -7,11 +7,15 @@ const NAMESPACE = process.env.AEROSPIKE_NAMESPACE || 'test';
 const SESSIONS = 'sessions';
 const LOGS = 'logs';
 
+//limits 
+const BATCH_READ_RECORDS_LIMIT = 5000;
+
 module.exports = {
   dbTables: {
     SESSIONS,
     LOGS,
   },
+  BATCH_READ_RECORDS_LIMIT,
   CLUSTER_IP,
   CLUSTER_PORT,
   NAMESPACE,
