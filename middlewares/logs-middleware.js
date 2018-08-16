@@ -3,8 +3,8 @@ const socketApi = require('../socket/socket-api');
 
 function getSessionLogs(req, res, next) {
   const sessionId = req.query.sessionId;
-  const startFrom = req.query.startFrom;
-  const limit = req.query.limit;
+  const startFrom = parseInt(req.query.startFrom);
+  const limit = parseInt(req.query.limit);
 
   if (!sessionId) {
     return res.sendStatus(400);
