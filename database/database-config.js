@@ -1,11 +1,11 @@
-const { CLUSTER_IP, CLUSTER_PORT, NAMESPACE } = require('./database-constants');
+const { DATABASE_HOST, DATABASE_PORT, DATABASE_NAMESPACE } = require('../config');
 
 const dbConfig = {
-  hosts: [ { addr: CLUSTER_IP, port: CLUSTER_PORT } ],
+  hosts: [ { addr: DATABASE_HOST,  port:+DATABASE_PORT }],
 };
 
 const dbParams = {
-  namespace: NAMESPACE,
+  namespace: DATABASE_NAMESPACE,
 };
 
 module.exports = {

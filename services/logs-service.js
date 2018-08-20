@@ -2,8 +2,9 @@ const fs = require('fs');
 const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
 const { SOCKET_B_PUSH_LOGS } = require('../socket/socket-events');
+const { APP_HOST, APP_PORT} = require('../config');
 
-const HOST_ADDRESS = process.env.HOST_ADDRESS || 'http://10.61.40.184:4000';
+const HOST_ADDRESS = `${APP_HOST}/${APP_PORT}`;
 
 function getSessionLogs(sessionId, limit, startFrom) {
   return new Promise((resolve, reject) => {

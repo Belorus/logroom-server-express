@@ -10,12 +10,13 @@ const http = require('http');
 const cluster = require('cluster');
 const io = require('../socket/socket-api').io;
 const redisAdapter = require('socket.io-redis');
-io.adapter(redisAdapter({ host: process.env.REDIS_HOST || 'localhost', port: process.env.REDIS_PORT || 6379 }));
+const config = require('../config');
+io.adapter(redisAdapter({ host: config.REDIS_HOST, port: config.REDIS_PORT }));
 /**
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(process.env.PORT || '4000');
+const port = normalizePort(config.APP_PORT);
 app.set('port', port);
 
 /**

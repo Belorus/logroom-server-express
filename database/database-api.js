@@ -1,9 +1,8 @@
 const Aerospike = require('aerospike');
 const { dbConfig, dbParams } = require('./database-config');
-const { dbTables } = require('./database-constants');
+const { dbTables, BATCH_READ_RECORDS_LIMIT } = require('./database-constants');
 
 const client = Aerospike.client(dbConfig);
-const BATCH_READ_RECORDS_LIMIT = 5000;
 
 function createIndex(table, field, type) {
   const options = {
@@ -14,10 +13,8 @@ function createIndex(table, field, type) {
     datatype: type,
   };
 
-  client.createIndex(options, function (error, job) {
-    if (error) {
-      console.error('Index creation error');
-    } else {
+  client.createIndex(options, (error, job) => {
+    if (!error) {
       job.waitUntilDone(() => {
         console.log('Index was created successfully.');
       });
@@ -31,7 +28,7 @@ function connect() {
       if (error) {
         reject(error);
       } else {
-        // createIndex(dbTables.SESSIONS, 'updatedAt', Aerospike.indexDataType.NUMERIC);
+        createIndex(dbTables.SESSIONS, 'updatedAt', Aerospike.indexDataType.NUMERIC);
         resolve();
       }
     });

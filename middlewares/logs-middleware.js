@@ -50,7 +50,6 @@ function addSessionLogsAndUpdateInfo(req, res, next) {
   logsService.pushLogsToSessionAndUpdateInfo(sessionInfo)
     .then((socketRoomEvents) => {
       socketRoomEvents.forEach((event) => {
-        console.log(event.payload.logs[0].seqNumber);
         socketApi.sendEventToRoom(event.roomId, event.type, event.payload);
       });
       res.send('ok');

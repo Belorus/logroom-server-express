@@ -11,13 +11,16 @@ const logsRouter = require('./routes/logs-router');
 
 const app = express();
 
-databaseApi.connect()
-  .then(() => {
-    console.log('Connection to database succeeded!')
-  })
-  .catch((error) => {
-    console.error('Connection to database failed! Error: ', error);
-  });
+setTimeout(() => {
+  databaseApi.connect()
+    .then(() => {
+      console.log('Connection to database succeeded!')
+    })
+    .catch((e) => {
+      console.error('Connection to database failed. Reconnect after 3 seconds.')
+      setTimeout(() => databaseApi.connect(), 3000);
+    });
+}, 3000);
 
 app.use(cors())
 app.use(logger('dev'));
