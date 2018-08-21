@@ -1,20 +1,11 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies.
- */
-const sticky = require('sticky-session');
 const app = require('../app');
 const debug = require('debug')('logroom-backend:server');
 const http = require('http');
-const cluster = require('cluster');
 const io = require('../socket/socket-api').io;
 const redisAdapter = require('socket.io-redis');
 const config = require('../config');
-io.adapter(redisAdapter({ host: config.REDIS_HOST, port: config.REDIS_PORT }));
-/**
- * Get port from environment and store in Express.
- */
 
 const port = normalizePort(config.APP_PORT);
 app.set('port', port);
@@ -23,19 +14,16 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-
 const server = http.createServer(app);
-io.attach(server);
+io.adapter(redisAdapter({ host: config.REDIS_HOST, port: config.REDIS_PORT }));
+io.attach(server, { transports: ['websocket'] });
 
 server.on('error', onError);
 
-if (!sticky.listen(server, port)) {
-  if (cluster.isMaster) {
-    console.log(`Master server started on port ${port}`);
-  } 
-} else {
-  console.log(`- Child server started on port ${port} case worker id=${cluster.worker.id}`);
-}
+server.listen(port, () => {
+    console.info('Server started at port: ', port);
+  }
+);
 
 /**
  * Normalize a port into a number, string, or false.

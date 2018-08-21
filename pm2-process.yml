@@ -1,0 +1,5 @@
+apps:
+  script   : 'bin/www'
+  name     : 'logroom-backend'
+  exec_mode: 'cluster'
+  instances: 'max'

@@ -8,6 +8,8 @@ const DATABASE_NAMESPACE = process.env.AEROSPIKE_NAMESPACE || 'test';
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || 6379;
 
+const DB_CONNECTION_DELAY_IN_MS = process.env.DB_CONNECTION_DELAY || 3000;
+
 module.exports = {
   DATABASE_HOST,
   DATABASE_PORT,
@@ -16,4 +18,5 @@ module.exports = {
   REDIS_PORT,
   APP_HOST,
   APP_PORT,
+  DB_CONNECTION_DELAY_IN_MS,
 };

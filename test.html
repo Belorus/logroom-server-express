@@ -14,7 +14,12 @@
 <body>
   <script>
     $(function () {
-      var socket = io.connect('http://10.61.40.181:4000');
+      var socket = io.connect('http://10.61.40.199:4000', 
+      {
+        transports: [
+          'websocket',
+        ]
+      });
       socket.emit('SOCKET_F_START_LISTEN_SESSION', {
         sessionId: 'test_session_5',
         sendOld: true,

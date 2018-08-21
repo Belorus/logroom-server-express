@@ -1,19 +1,10 @@
 ## Get Started
 
-Install dependencies:
+Start the app with Docker:
 
 ```
-$ npm install
-```
+$ docker-compose build
 
-Start the app for production:
+$ docker-compose up
 
-```
-$ npm start
-```
-
-Start the app for development:
-
-```
-$ npm run devstart
 ```
