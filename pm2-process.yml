@@ -3,3 +3,4 @@ apps:
   name     : 'logroom-backend'
   exec_mode: 'cluster'
   instances: 'max'
+  watch: false
