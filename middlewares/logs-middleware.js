@@ -5,12 +5,13 @@ function getSessionLogs(req, res, next) {
   const sessionId = req.query.sessionId;
   const startFrom = parseInt(req.query.startFrom);
   const limit = parseInt(req.query.limit);
+  const levels = req.query.levels;
 
   if (!sessionId) {
     return res.sendStatus(400);
   }
 
-  logsService.getSessionLogs(sessionId, limit, startFrom)
+  logsService.getSessionLogs(sessionId, limit, startFrom, levels)
     .then((logs) => {
       res.send(logs);
     })

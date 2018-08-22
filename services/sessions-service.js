@@ -17,7 +17,7 @@ function getSessions(type) {
         to: filterRangeTo,
       };
     }
-    db.getListOfRecords(dbTables.SESSIONS, selectedFields, sessionsFilter)
+    db.getListOfRecords(dbTables.SESSIONS, selectedFields, [sessionsFilter])
       .then((activeSessions) => {
         resolve(activeSessions);
       })

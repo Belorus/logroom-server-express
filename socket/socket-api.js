@@ -8,12 +8,10 @@ io.on('connection', (socket) => {
     socket.join(sessionId);
     if (sendOld) {
       logsService.getSessionLogs(sessionId, limit)
-        .then((logsBatches) => {
-            logsBatches.forEach((logs, i) => {
-              socket.emit(events.SOCKET_B_PUSH_LOGS, { 
-                logs,
-                isOld: true,
-            });
+        .then((logs) => {
+            socket.emit(events.SOCKET_B_PUSH_LOGS, { 
+              logs,
+              isOld: true,
           });
         })
         .catch((error) => {

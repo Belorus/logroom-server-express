@@ -6,7 +6,7 @@ const { APP_HOST, APP_PORT} = require('../config');
 
 const HOST_ADDRESS = `${APP_HOST}/${APP_PORT}`;
 
-function getSessionLogs(sessionId, limit, startFrom) {
+function getSessionLogs(sessionId, limit, startFrom, levels) {
   return new Promise((resolve, reject) => {
     db.getRecord(dbTables.SESSIONS, sessionId)
       .then((session) => {
@@ -17,7 +17,13 @@ function getSessionLogs(sessionId, limit, startFrom) {
           for (let i = startLog; i >= logsLimit + 1; i--) {
             keys.push(db.generateKeyForBatchRead(dbTables.LOGS, `${session.id}_${i}`));
           };
-          db.batchReadRecords(keys).then(resolve, reject);
+          db.batchReadRecords(keys).then((logs) => {
+            if (levels) {
+              resolve(logs.filter((log) => levels.includes(log.level)));
+            } else {
+              resolve(logs);
+            }
+          }, reject);
         } else {
           reject('Session not found');
         }
@@ -31,14 +37,12 @@ function getSessionLogs(sessionId, limit, startFrom) {
 function getSessionLogsFileLink(sessionId) {
   return new Promise((resolve, reject) => {
     getSessionLogs(sessionId)
-      .then((logsBatches) => {
+      .then((logs) => {
         const fileName = `${sessionId}_${Date.now()}_logs.txt`;
         const filePath = `public/files/${fileName}`;
         let logsString = '';
-        logsBatches.forEach((logsBatch) => {
-          logsBatch.forEach((log) => {
-            logsString += `${log.level} | ${log.timestamp} | ${log.tag} | ${log.thread} | ${log.categories.join(',') ||  '—'} | ${log.message}\n`
-          });
+        logs.forEach((log) => {
+          logsString += `${log.level} | ${log.timestamp} | ${log.tag} | ${log.thread} | ${log.categories.join(',') ||  '—'} | ${log.message}\n`
         });
         fs.writeFile(filePath, logsString, (err) => {
           if (err)  {

@@ -66,13 +66,25 @@ function getRecord(table, key) {
   });
 };
 
-function getListOfRecords(table, selectedFields, filter) {
+function getListOfRecords(table, selectedFields, filters) {
   return new Promise((resolve, reject) => {
     const records = [];
     const query = client.query(dbParams.namespace, table);
 
-    if (filter) {
-      query.where(Aerospike.filter[filter.type](filter.field, filter.from, filter.to));
+    if (filters) {
+      filters.forEach((filter) => {
+        switch (filter.type) {
+          case 'equal' : {
+            query.where(Aerospike.filter.equal(filter.field, filter.value));
+            break;
+          }
+          case 'range' : {
+            query.where(Aerospike.filter.range(filter.field, filter.from, filter.to));
+            break;
+          }
+          default: break;
+        }
+      })
     }
 
     if (selectedFields) {
@@ -104,7 +116,7 @@ async function batchReadRecords(readKeys) {
     const operationKeys = readKeys.slice(startIndex, endIndex)
     await client.batchRead(operationKeys)
       .then((records) => {
-        readedRecords.push(records.map((r) => r.record.bins));
+        readedRecords.push(...records.map((r) => r.record.bins));
       })
       .catch((error) => {
         throw new Error(error); 
