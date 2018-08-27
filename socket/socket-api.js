@@ -27,7 +27,11 @@ io.on('connection', (socket) => {
 });
 
 socketApi.sendEventToRoom = function(room, event, payload) {
-  this.io.sockets.to(room).emit(event, payload);
+  if (room === 'all') {
+    this.io.emit(event, payload);
+  } else {
+    this.io.sockets.to(room).emit(event, payload);
+  }
 }
 
 module.exports = socketApi;

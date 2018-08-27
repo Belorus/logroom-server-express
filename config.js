@@ -10,6 +10,8 @@ const REDIS_PORT = process.env.REDIS_PORT || 6379;
 
 const DB_CONNECTION_DELAY_IN_MS = process.env.DB_CONNECTION_DELAY || 3000;
 
+const ACTIVE_SESSIONS_TIME_IN_MS = 5 * 60 * 1000; 
+
 module.exports = {
   DATABASE_HOST,
   DATABASE_PORT,
@@ -19,4 +21,5 @@ module.exports = {
   APP_HOST,
   APP_PORT,
   DB_CONNECTION_DELAY_IN_MS,
+  ACTIVE_SESSIONS_TIME_IN_MS,
 };

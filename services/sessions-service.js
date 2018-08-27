@@ -1,7 +1,6 @@
 const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
-
-const ACTIVE_SESSIONS_TIME_IN_MS = 5 * 60 * 1000;
+const { ACTIVE_SESSIONS_TIME_IN_MS } = require('../config');
 
 function getSessions(type) {
   return new Promise((resolve, reject) => {

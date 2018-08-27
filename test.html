@@ -28,6 +28,12 @@
       socket.on('SOCKET_B_PUSH_LOGS', function(msg){
         console.log(msg);
       });
+      socket.on('SOCKET_B_NEW_ACTIVE_SESSION', function(msg){
+        console.log(msg);
+      });
+      socket.on('SOCKET_B_ACTIVE_SESSION_UPDATED', function(msg){
+        console.log(msg);
+      });
     });
   </script>
 </body>

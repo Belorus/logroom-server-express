@@ -1,8 +1,8 @@
 const fs = require('fs');
 const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
-const { SOCKET_B_PUSH_LOGS } = require('../socket/socket-events');
-const { APP_HOST, APP_PORT} = require('../config');
+const { SOCKET_B_PUSH_LOGS, SOCKET_B_NEW_ACTIVE_SESSION, SOCKET_B_ACTIVE_SESSION_UPDATED } = require('../socket/socket-events');
+const { APP_HOST, APP_PORT } = require('../config');
 
 const HOST_ADDRESS = `${APP_HOST}:${APP_PORT}`;
 
@@ -61,11 +61,12 @@ function getSessionLogsFileLink(sessionId) {
 function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
   return new Promise((resolve, reject) => {
     db.getRecord(dbTables.SESSIONS, newSessionInfo.id)
-      .then((session) => {
-        const updatedSession= session || { id: newSessionInfo.id, logsCount: 0 };
+      .then((oldSession) => {
+        const events = [];
+        const updatedSession= oldSession || { id: newSessionInfo.id, logsCount: 0 };
 
-        if (session) {
-          if (newSessionInfo.seqNumber <= session.seqNumber) {
+        if (oldSession) {
+          if (newSessionInfo.seqNumber <= oldSession.seqNumber) {
             return reject('Bad sequence number');
           }
         } 
@@ -85,14 +86,30 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
             console.error(error);
           });
 
-        resolve([{
+        if (!oldSession) {
+          events.push({
+            roomId: 'all',
+            type: SOCKET_B_NEW_ACTIVE_SESSION,
+            payload: updatedSession,
+          });
+        } else if (newSessionInfo.additional) {
+          events.push({
+            roomId: 'all',
+            type: SOCKET_B_ACTIVE_SESSION_UPDATED,
+            payload: updatedSession,
+          });
+        }
+
+        events.push({
           roomId: newSessionInfo.id,
           type: SOCKET_B_PUSH_LOGS,
           payload: {
             logs: newSessionInfo.logs.reverse(),
             total: updatedSession.logsCount,
           }
-        }]);
+        });
+
+        resolve(events);
       })
       .catch((error) => {
         reject(error);
