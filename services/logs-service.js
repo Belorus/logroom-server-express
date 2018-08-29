@@ -73,6 +73,7 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
       
         newSessionInfo.logs.forEach((log, index) => {
           log.seqNumber = updatedSession.logsCount + index + 1;
+          log.level = log.level.trim();
           db.writeRecord(dbTables.LOGS, `${updatedSession.id}_${log.seqNumber}`, log);
         });
 

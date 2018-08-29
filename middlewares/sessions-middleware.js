@@ -11,7 +11,23 @@ function getActiveSessions(req, res, next) {
 };
 
 function getAllSessions(req, res, next) {
-  sessionsService.getSessions('all')
+  const additionalFilters = [];
+  if (req.query.appName) {
+    additionalFilters.push({
+      type: 'equal',
+      field: 'appName',
+      value: req.query.appName,
+    })
+  }
+  if (req.query.appVersion) {
+    additionalFilters.push({
+      type: 'equal',
+      field: 'appVersion',
+      value: req.query.appVersion,
+    })
+  }
+
+  sessionsService.getSessions('all', additionalFilters)
     .then((sessions) => {
       res.send(sessions);
     })
