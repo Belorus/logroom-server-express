@@ -2,21 +2,27 @@ const db = require('../database/database-api');
 const { dbTables } = require('../database/database-constants');
 const { ACTIVE_SESSIONS_TIME_IN_MS } = require('../config');
 
-function getSessions(type, additionalFilters) {
+function getSessions(type, filters = {}) {
   return new Promise((resolve, reject) => {
-    const filters = []
+    let primaryFilter = null;
     const filterRangeTo = Date.now();
     const filterRangeFrom = filterRangeTo - ACTIVE_SESSIONS_TIME_IN_MS;
     const selectedFields = ['id', 'additional', 'logsCount', 'updatedAt'];
     if (type === 'active') {
-      filters.push({
+      primaryFilter = {
         type: 'range',
         field: 'updatedAt',
         from: filterRangeFrom,
         to: filterRangeTo,
-      });
+      };
     }
-    db.getListOfRecords(dbTables.SESSIONS, selectedFields, filters)
+  
+    const additionalFilter = (session) => {
+      return (filters.appName ? session.additional.app_name === filters.appName : true) &&
+        (filters.appVersion ? session.additional.app_version === filters.appVersion : true);
+    };
+  
+    db.getListOfRecords(dbTables.SESSIONS, selectedFields, primaryFilter, additionalFilter)
       .then((activeSessions) => {
         resolve(activeSessions);
       })

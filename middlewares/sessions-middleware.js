@@ -11,23 +11,12 @@ function getActiveSessions(req, res, next) {
 };
 
 function getAllSessions(req, res, next) {
-  const additionalFilters = [];
-  if (req.query.appName) {
-    additionalFilters.push({
-      type: 'equal',
-      field: 'appName',
-      value: req.query.appName,
-    })
-  }
-  if (req.query.appVersion) {
-    additionalFilters.push({
-      type: 'equal',
-      field: 'appVersion',
-      value: req.query.appVersion,
-    })
-  }
+  const filters = {
+    appName: req.query.appName,
+    appVersion: req.query.appVersion,
+  };
 
-  sessionsService.getSessions('all', additionalFilters)
+  sessionsService.getSessions('all', filters)
     .then((sessions) => {
       res.send(sessions);
     })

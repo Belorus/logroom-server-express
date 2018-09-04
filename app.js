@@ -31,7 +31,7 @@ if (!fs.existsSync('public/files')) {
   fs.mkdirSync('public/files');
 }
 
-app.use(cors())
+app.use(cors());
 app.use(logger('dev'));
 app.use('/files', express.static(__dirname + '/public/files'));
 app.use(express.json());

@@ -66,25 +66,23 @@ function getRecord(table, key) {
   });
 };
 
-function getListOfRecords(table, selectedFields, filters) {
+function getListOfRecords(table, selectedFields, primaryFilter, additionalFilter) {
   return new Promise((resolve, reject) => {
     const records = [];
     const query = client.query(dbParams.namespace, table);
 
-    if (filters) {
-      filters.forEach((filter) => {
-        switch (filter.type) {
-          case 'equal' : {
-            query.where(Aerospike.filter.equal(filter.field, filter.value));
-            break;
-          }
-          case 'range' : {
-            query.where(Aerospike.filter.range(filter.field, filter.from, filter.to));
-            break;
-          }
-          default: break;
+    if (primaryFilter) {
+      switch (primaryFilter.type) {
+        case 'equal' : {
+          query.where(Aerospike.filter.equal(primaryFilter.field, primaryFilter.value));
+          break;
         }
-      })
+        case 'range' : {
+          query.where(Aerospike.filter.range(primaryFilter.field, primaryFilter.from, primaryFilter.to));
+          break;
+        }
+        default: break;
+      }
     }
 
     if (selectedFields) {
@@ -102,7 +100,7 @@ function getListOfRecords(table, selectedFields, filters) {
     });
   
     stream.on('end', () => {
-      resolve(records);
+      resolve(additionalFilter ? records.filter(additionalFilter) : records);
     });
   });
 };

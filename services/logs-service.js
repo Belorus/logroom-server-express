@@ -1,5 +1,7 @@
 const fs = require('fs');
 const db = require('../database/database-api');
+const dateUtils = require('../utils/date-utils');
+const stringUtils = require('../utils/string-utils');
 const { dbTables } = require('../database/database-constants');
 const { SOCKET_B_PUSH_LOGS, SOCKET_B_NEW_ACTIVE_SESSION, SOCKET_B_ACTIVE_SESSION_UPDATED } = require('../socket/socket-events');
 const { APP_HOST, APP_PORT } = require('../config');
@@ -38,11 +40,11 @@ function getSessionLogsFileLink(sessionId) {
   return new Promise((resolve, reject) => {
     getSessionLogs(sessionId)
       .then((logs) => {
-        const fileName = `${sessionId}_${Date.now()}_logs.txt`;
+        const fileName = `${sessionId}_${logs.length}_logs.txt`;
         const filePath = `public/files/${fileName}`;
-        let logsString = '';
+        let logsString = `Session ID: ${sessionId}; Logs count: ${logs.length}\n\n`;
         logs.forEach((log) => {
-          logsString += `${log.level} | ${log.timestamp} | ${log.tag} | ${log.thread} | ${log.categories.join(',') ||  '—'} | ${log.message}\n`
+          logsString += `${dateUtils.formatTimestamp(log.timestamp)}|${stringUtils.adjustString(log.level, 5)}|${log.thread}|${log.tag}|${log.categories.join(',') ||  '—'}|${log.message}\n`
         });
         fs.writeFile(filePath, logsString, (err) => {
           if (err)  {
@@ -63,7 +65,7 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
     db.getRecord(dbTables.SESSIONS, newSessionInfo.id)
       .then((oldSession) => {
         const events = [];
-        const updatedSession= oldSession || { id: newSessionInfo.id, logsCount: 0 };
+        const updatedSession= oldSession || { id: newSessionInfo.id, additional: {}, logsCount: 0 };
 
         if (oldSession) {
           if (newSessionInfo.seqNumber <= oldSession.seqNumber) {
