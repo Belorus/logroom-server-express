@@ -65,7 +65,7 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
     db.getRecord(dbTables.SESSIONS, newSessionInfo.id)
       .then((oldSession) => {
         const events = [];
-        const updatedSession= oldSession || { id: newSessionInfo.id, additional: {}, logsCount: 0 };
+        const updatedSession= oldSession || { id: newSessionInfo.id, markers: [], additional: {}, logsCount: 0 };
 
         if (oldSession) {
           if (newSessionInfo.seqNumber <= oldSession.seqNumber) {

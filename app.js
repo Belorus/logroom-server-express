@@ -6,8 +6,11 @@ const logger = require('morgan');
 const fs = require('fs');
 
 const databaseApi = require('./database/database-api');
+
 const sessionsRouter = require('./routes/sessions-router');
+const markersRouter = require('./routes/markers-router');
 const logsRouter = require('./routes/logs-router');
+
 const { DB_CONNECTION_DELAY_IN_MS } = require('./config');
 
 const app = express();
@@ -38,7 +41,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(bodyParser.json( { type: '*/*'} ));
-app.use('/', [sessionsRouter, logsRouter]);
+app.use('/', [sessionsRouter, logsRouter, markersRouter]);
 
 app.use((error, req, res, next) => {
   if (error) {

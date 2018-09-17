@@ -7,7 +7,7 @@ function getSessions(type, filters = {}) {
     let primaryFilter = null;
     const filterRangeTo = Date.now();
     const filterRangeFrom = filterRangeTo - ACTIVE_SESSIONS_TIME_IN_MS;
-    const selectedFields = ['id', 'additional', 'logsCount', 'updatedAt'];
+    const selectedFields = ['id', 'additional', 'markers', 'logsCount', 'updatedAt'];
     if (type === 'active') {
       primaryFilter = {
         type: 'range',
