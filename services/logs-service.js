@@ -43,7 +43,7 @@ function getSessionLogsFileLink(sessionId) {
         const fileName = `${sessionId}_${logs.length}_logs.txt`;
         const filePath = `public/files/${fileName}`;
         let logsString = `Session ID: ${sessionId}; Logs count: ${logs.length}\n\n`;
-        logs.forEach((log) => {
+        logs.reverse().forEach((log) => {
           logsString += `${dateUtils.formatTimestamp(log.timestamp)}|${stringUtils.adjustString(log.level, 5)}|${log.thread}|${log.tag}|${log.categories.join(',') ||  '—'}|${log.message}\n`
         });
         fs.writeFile(filePath, logsString, (err) => {

@@ -21,6 +21,7 @@ services:
       AEROSPIKE_NAMESPACE: logroom
       REDIS_PORT: 6379
       REDIS_HOST: redis
+      TZ: utc 
 
   aerospike:
     image: aerospike/aerospike-server:latest
