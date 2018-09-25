@@ -64,8 +64,15 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
   return new Promise((resolve, reject) => {
     db.getRecord(dbTables.SESSIONS, newSessionInfo.id)
       .then((oldSession) => {
+        const dateNow = Date.now();
         const events = [];
-        const updatedSession= oldSession || { id: newSessionInfo.id, markers: [], additional: {}, logsCount: 0 };
+        const updatedSession= oldSession || { 
+          id: newSessionInfo.id,
+          markers: [],
+          additional: {},
+          logsCount: 0,
+          createdAt: dateNow
+        };
 
         if (oldSession) {
           if (newSessionInfo.seqNumber <= oldSession.seqNumber) {
@@ -82,7 +89,7 @@ function pushLogsToSessionAndUpdateInfo(newSessionInfo) {
         updatedSession.seqNumber = newSessionInfo.seqNumber;
         updatedSession.additional =  { ...updatedSession.additional, ...newSessionInfo.additional };
         updatedSession.logsCount = updatedSession.logsCount + newSessionInfo.logs.length;
-        updatedSession.updatedAt = Date.now();
+        updatedSession.updatedAt = dateNow;
 
         db.writeRecord(dbTables.SESSIONS, updatedSession.id, updatedSession)
           .catch((error) => {

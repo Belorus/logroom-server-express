@@ -7,7 +7,7 @@ function getSessions(type, filters = {}) {
     let primaryFilter = null;
     const filterRangeTo = Date.now();
     const filterRangeFrom = filterRangeTo - ACTIVE_SESSIONS_TIME_IN_MS;
-    const selectedFields = ['id', 'additional', 'markers', 'logsCount', 'updatedAt'];
+    const selectedFields = ['id', 'additional', 'markers', 'logsCount', 'createdAt', 'updatedAt'];
     if (type === 'active') {
       primaryFilter = {
         type: 'range',
@@ -17,14 +17,14 @@ function getSessions(type, filters = {}) {
       };
     }
   
-    const additionalFilter = (session) => {
-      return (filters.appName ? session.additional.app_name === filters.appName : true) &&
-        (filters.appVersion ? session.additional.app_version === filters.appVersion : true);
-    };
+    // const additionalFilter = (session) => {
+    //   return (filters.appName ? session.additional.app_name === filters.appName : true) &&
+    //     (filters.appVersion ? session.additional.app_version === filters.appVersion : true);
+    // };
   
-    db.getListOfRecords(dbTables.SESSIONS, selectedFields, primaryFilter, additionalFilter)
-      .then((activeSessions) => {
-        resolve(activeSessions);
+    db.getListOfRecords(dbTables.SESSIONS, selectedFields, primaryFilter)
+      .then((sessions) => {
+        resolve({ sessions, serverTimestamp: Date.now() });
       })
       .catch((error) => {
         reject(error);
