@@ -25,7 +25,21 @@ function getAllSessions(req, res, next) {
     });
 };
 
+function getSession(req, res, next) {
+  const sessionId = req.params.sessionId;
+
+  sessionsService.getSession(sessionId)
+    .then((session) => {
+      res.send(session);
+    })
+    .catch((error) => {
+      next(error);
+    });
+};
+
+
 module.exports = {
   getActiveSessions,
   getAllSessions,
+  getSession
 };

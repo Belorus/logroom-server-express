@@ -32,6 +32,24 @@ function getSessions(type, filters = {}) {
   });
 }
 
+
+function getSession(sessionid) {
+  return new Promise((resolve, reject) => {
+    db.getRecord(dbTables.SESSIONS, sessionid)
+      .then((session) => {
+        if (session) {
+          resolve(session);
+        } else {
+          reject('Session not found');
+        }
+      })
+      .catch((error) => {
+        return reject(error);
+      });
+  });
+}
+
 module.exports = {
   getSessions,
+  getSession,
 };
